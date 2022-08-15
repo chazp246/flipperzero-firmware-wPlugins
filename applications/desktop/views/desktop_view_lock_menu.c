@@ -1,5 +1,6 @@
 #include <furi.h>
 #include <gui/elements.h>
+#include <dolphin/dolphin.h>
 
 #include "../desktop_i.h"
 #include "desktop_view_lock_menu.h"
@@ -64,8 +65,9 @@ static void lock_menu_callback(void* context, uint8_t index) {
                 model->hint_timeout = HINT_TIMEOUT;
                 return true;
             });
+        furi_delay_us(800);
         desktop_view_lock_menu_dumbmode_changed(1);
-        furi_delay_us(500);
+        DOLPHIN_DEED(DolphinDeedU2fAuthorized);
         lock_menu->callback(DesktopLockMenuEventExit, lock_menu->context);
         break;
     default: // wip message
@@ -80,7 +82,7 @@ static void lock_menu_callback(void* context, uint8_t index) {
 
 void desktop_lock_menu_render(Canvas* canvas, void* model) {
     const char* Lockmenu_Items[LOCK_MENU_ITEMS_NB] = {
-        "Lock", "Lock with PIN", "DUMB Mode", "GAMES ONLY"};
+        "Lock", "Lock With PIN", "DUMB Mode", "GAMES ONLY"};
 
     DesktopLockMenuViewModel* m = model;
     canvas_clear(canvas);

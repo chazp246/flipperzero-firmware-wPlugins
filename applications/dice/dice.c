@@ -4,6 +4,7 @@
 #include <gui/elements.h>
 #include <gui/gui.h>
 #include <input/input.h>
+#include <dolphin/dolphin.h>
 
 #define TAG "Dice Roller"
 
@@ -201,6 +202,9 @@ static void dice_render_callback(Canvas* const canvas, void* ctx) {
             snprintf(diceType[0], sizeof(diceType[0]), "%s%d", "d", diceSelect);
             snprintf(
                 strings[0], sizeof(strings[0]), "%d%s at %s", diceQty, diceType[0], rollTime[0]);
+            if(diceSelect >= 20 && diceRoll == diceSelect) DOLPHIN_DEED(DolphinDeedU2fAuthorized);
+            if(diceSelect >= 20 && diceRoll == diceSelect - 1)
+                DOLPHIN_DEED(DolphinDeedU2fAuthorized);
             if(diceQty == 1) {
                 snprintf(strings[1], sizeof(strings[1]), "%d", diceRoll);
             } else if(diceQty == 2) {
@@ -339,6 +343,7 @@ int32_t dice_app(void* p) {
     ValueMutex state_mutex;
     if(!init_mutex(&state_mutex, plugin_state, sizeof(ClockState))) {
         FURI_LOG_E(TAG, "cannot create mutex\r\n");
+        furi_message_queue_free(event_queue);
         free(plugin_state);
         return 255;
     }
@@ -347,7 +352,7 @@ int32_t dice_app(void* p) {
     view_port_input_callback_set(view_port, dice_input_callback, event_queue);
     FuriTimer* timer = furi_timer_alloc(dice_tick, FuriTimerTypePeriodic, event_queue);
     furi_timer_start(timer, furi_kernel_get_tick_frequency());
-    Gui* gui = furi_record_open("gui");
+    Gui* gui = furi_record_open(RECORD_GUI);
     gui_add_view_port(gui, view_port, GuiLayerFullscreen);
     PluginEvent event;
     for(bool processing = true; processing;) {
@@ -423,7 +428,7 @@ int32_t dice_app(void* p) {
     furi_timer_free(timer);
     view_port_enabled_set(view_port, false);
     gui_remove_view_port(gui, view_port);
-    furi_record_close("gui");
+    furi_record_close(RECORD_GUI);
     view_port_free(view_port);
     furi_message_queue_free(event_queue);
     return 0;
