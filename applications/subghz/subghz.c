@@ -68,6 +68,8 @@ SubGhz* subghz_alloc() {
     // GUI
     subghz->gui = furi_record_open(RECORD_GUI);
 
+    subghz->in_decoder_scene = false;
+
     // View Dispatcher
     subghz->view_dispatcher = view_dispatcher_alloc();
     view_dispatcher_enable_queue(subghz->view_dispatcher);
@@ -314,6 +316,12 @@ void subghz_free(SubGhz* subghz) {
 
 int32_t subghz_app(void* p) {
     SubGhz* subghz = subghz_alloc();
+
+    if(!furi_hal_region_is_provisioned()) {
+        subghz_dialog_message_show_only_rx(subghz);
+        subghz_free(subghz);
+        return 1;
+    }
 
     //Load database
     bool load_database = subghz_environment_load_keystore(
